@@ -1,0 +1,11 @@
+﻿from services.operations import DeepfakeAnalyzer
+print(' Initializing analyzer...')
+analyzer = DeepfakeAnalyzer()
+print(' Analyzer initialized')
+print(' Running analysis...')
+result = analyzer.analyze_image('test_image.jpg')
+print(' Analysis completed')
+print('Status:', result['status'])
+print('Confidence:', result['overall_assessment']['confidence_score']*100, '%')
+print('Is Deepfake:', result['overall_assessment']['is_likely_deepfake'])
+print('Recommendation:', result['overall_assessment']['recommendation'])

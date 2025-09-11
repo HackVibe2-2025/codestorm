@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="analysis-styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="analysis-script.js" defer></script>
+    <title>Analysis Results - DeepScan</title>
+    <meta name="description" content="Deepfake detection analysis results">
+</head>
+<body>
+    <!-- Loading Screen for Analysis -->
+    <div id="analysisLoader" class="analysis-loader">
+        <div class="loader-content">
+            <div class="loader-logo">DeepScan</div>
+            <div class="analysis-progress">
+                <div class="progress-bar">ī
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Initializing analysis...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="analysis-dashboard">
+        <!-- Header -->
+        <header class="analysis-header">
+            <div class="header-content">
+                <a href="index.html" class="back-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                    Back to Dashboard
+                </a>
+                <h1 class="analysis-title">Analysis Results</h1>
+                <div class="analysis-timestamp" id="analysisTime"></div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="analysis-content">
+            <div class="content-container">
+                <!-- Image Display Section -->
+                <section class="image-section">
+                    <div class="image-container" id="imageContainer">
+                        <img id="analyzedImage" class="analyzed-image" alt="Analyzed image" />
+                        <div class="image-overlay">
+                            <div class="detection-badge" id="detectionBadge">
+                                <span class="badge-icon"></span>
+                                <span class="badge-text"></span>
+                            </div>
+                            <div class="image-actions">
+                                <button class="action-btn" id="copyUrlBtn" title="Copy Image URL">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                        <path d="m5 15-4-4 4-4"/>
+                                        <path d="m11 6 4-4 4 4"/>
+                                        <path d="m13 18 4 4 4-4"/>
+                                    </svg>
+                                </button>
+                                <button class="action-btn" id="replaceImageBtn" title="Replace Image">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                        <polyline points="14,2 14,8 20,8"/>
+                                        <path d="M12 18v-6"/>
+                                        <path d="m9 15 3-3 3 3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="drag-drop-overlay" id="dragDropOverlay">
+                            <div class="drag-drop-content">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                    <path d="M12 18v-6"/>
+                                    <path d="m9 15 3-3 3 3"/>
+                                </svg>
+                                <p>Drop new image to analyze</p>
+                            </div>
+                        </div>
+                        <input type="file" id="hiddenFileInput" accept="image/*" style="display: none;" />
+                    </div>
+                    <div class="image-info">
+                        <h3>Image Information</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">File Name:</span>
+                                <span class="info-value" id="fileName">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">File Size:</span>
+                                <span class="info-value" id="fileSize">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Dimensions:</span>
+                                <span class="info-value" id="imageDimensions">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Format:</span>
+                                <span class="info-value" id="imageFormat">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Analysis Results Section -->
+                <section class="results-section">
+                    <div class="results-header">
+                        <h2>Deepfake Detection Analysis</h2>
+                        <div class="confidence-score">
+                            <span class="score-label">Confidence Score:</span>
+                            <span class="score-value" id="confidenceScore">-</span>
+                        </div>
+                    </div>
+
+                    <div class="analysis-details">
+                        <!-- Detection Status -->
+                        <div class="detection-status" id="detectionStatus">
+                            <div class="status-content">
+                                <div class="status-icon" id="statusIcon"></div>
+                                <div class="status-text">
+                                    <h3 id="statusTitle">Analyzing...</h3>
+                                    <p id="statusDescription">Please wait while we process your image.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Paragraphs -->
+                        <div class="analysis-paragraphs">
+                            <div class="paragraph-card">
+                                <h4>🔍 Technical Analysis</h4>
+                                <p id="technicalAnalysis">Loading technical analysis...</p>
+                            </div>
+                            
+                            <div class="paragraph-card">
+                                <h4>🧠 AI Model Assessment</h4>
+                                <p id="aiAssessment">Loading AI model assessment...</p>
+                            </div>
+                            
+                            <div class="paragraph-card">
+                                <h4>📊 Confidence Explanation</h4>
+                                <p id="confidenceExplanation">Loading confidence explanation...</p>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Metrics -->
+                        <div class="metrics-section">
+                            <h4>Detailed Metrics</h4>
+                            <div class="metrics-grid">
+                                <div class="metric-item">
+                                    <span class="metric-label">Facial Consistency:</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" id="facialConsistency" style="width: 0%"></div>
+                                    </div>
+                                    <span class="metric-value" id="facialValue">0%</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Lighting Analysis:</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" id="lightingAnalysis" style="width: 0%"></div>
+                                    </div>
+                                    <span class="metric-value" id="lightingValue">0%</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Edge Detection:</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" id="edgeDetection" style="width: 0%"></div>
+                                    </div>
+                                    <span class="metric-value" id="edgeValue">0%</span>
+                                </div>
+                                <div class="metric-item">
+                                    <span class="metric-label">Temporal Consistency:</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" id="temporalConsistency" style="width: 0%"></div>
+                                    </div>
+                                    <span class="metric-value" id="temporalValue">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" onclick="downloadReport()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7,10 12,15 17,10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download Report
+                            </button>
+                            <button class="btn btn-secondary" onclick="analyzeAnother()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+                                    <path d="M8 21v-4a2 2 0 012-2h4a2 2 0 012 2v4"/>
+                                </svg>
+                                Analyze Another Image
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

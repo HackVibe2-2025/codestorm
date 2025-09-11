@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">ī
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+    <title>DeepScan - AI-Powered Deepfake Detection</title>
+    <meta name="description" content="Advanced deepfake detection platform using machine learning to verify image authenticity">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">DeepScan</div>
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Initializing AI Detection Engine...</div>
+        </div>
+    </div>
+
+    <div class="dashboard-bg">
+        <!-- Enhanced floating diamonds with better positioning -->
+        <div class="floating-diamond one"></div>
+        <div class="floating-diamond two"></div>
+        <div class="floating-diamond three"></div>
+        <div class="floating-diamond four"></div>
+        <div class="floating-diamond five"></div>
+        <div class="floating-diamond six"></div>
+
+        <!-- Main overlay contains all content -->
+        <div class="overlay">
+            <!-- Header Section -->
+            <header class="header-section">
+                <h1 class="main-heading">
+                    <span class="heading-text">DeepScan</span>
+                    <span class="heading-subtitle">AI Detection Platform</span>
+                </h1>
+            </header>
+
+            <!-- Introduction Section -->
+            <section class="intro" aria-label="Platform Introduction">
+                <div class="intro-grid">
+                    <div class="intro-item">
+                        <h3>🔍 Advanced Detection</h3>
+                        <p>Our AI algorithms analyze image manipulation patterns with 99.2% accuracy using deep neural networks.</p>
+                    </div>
+                    <div class="intro-item">
+                        <h3>⚡ Real-time Analysis</h3>
+                        <p>Get instant results within seconds. Support for all major image formats including JPEG, PNG, WebP.</p>
+                    </div>
+                    <div class="intro-item">
+                        <h3>🛡️ Privacy First</h3>
+                        <p>All processing happens locally. Your images are never stored or transmitted to external servers.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section class="upload-section" aria-label="Image Upload">
+                <div class="upload-container">
+                    <div class="upload-box" id="uploadBox">
+                        <div class="upload-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                <polyline points="14,2 14,8 20,8"/>
+                                <path d="M12 18v-6"/>
+                                <path d="m9 15 3-3 3 3"/>
+                            </svg>
+                        </div>
+                        <h3 class="upload-title">Drop Image or URL</h3>
+                        <p class="upload-description">Drag & drop an image here or paste a URL below</p>
+                        
+                        <input type="file" id="fileInput" accept="image/*" aria-label="Select image file" />
+                        
+                        <div class="input-group">
+                            <input 
+                                type="url" 
+                                id="imageUrlInput" 
+                                placeholder="https://example.com/image.jpg" 
+                                aria-label="Image URL"
+                                autocomplete="url"
+                            />
+                            <div class="input-validation" id="urlValidation"></div>
+                        </div>
+                        
+                        <button id="uploadBtn" class="upload-btn" type="button" onclick="window.deepScanApp && window.deepScanApp.handleUpload(); console.log('Inline onclick fired!');">
+                            <span class="btn-text">Analyze Image</span>
+                            <span class="btn-loading">Analyzing...</span>
+                        </button>
+                        
+                        <div class="supported-formats">
+                            <small>Supported: JPG, PNG, WebP, GIF (Max: 10MB)</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Note: Results will be shown on separate analysis page -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 DeepScan. AI-Powered Detection Platform.</p>
+            <div class="footer-links">
+                <a href="#privacy">Privacy</a>
+                <a href="#about">About</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

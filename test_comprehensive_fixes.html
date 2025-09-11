@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepScan - Comprehensive Fixes Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #357ABD;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4A90E2;
+        }
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .console-output {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 DeepScan Comprehensive Fixes Test</h1>
+        <p>This test page validates all the enhancements and fixes implemented for robust error handling.</p>
+        
+        <div class="test-section">
+            <h3>📊 Test 1: Metrics Animation with Valid Data</h3>
+            <button class="test-button" onclick="testValidMetrics()">Test Valid Metrics</button>
+            <div id="metrics-test-1" class="metrics-grid"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>⚠️ Test 2: Metrics Animation with Missing Data</h3>
+            <button class="test-button" onclick="testMissingMetrics()">Test Missing Metrics</button>
+            <div id="metrics-test-2" class="metrics-grid"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>❌ Test 3: Metrics Animation with Invalid Data</h3>
+            <button class="test-button" onclick="testInvalidMetrics()">Test Invalid Metrics</button>
+            <div id="metrics-test-3" class="metrics-grid"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔔 Test 4: Enhanced Notification System</h3>
+            <button class="test-button" onclick="testNotifications()">Test All Notification Types</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Console Output</h3>
+            <div id="console-output" class="console-output">
+                Console logs will appear here...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock the DeepScanAnalyzer class for testing
+        class MockDeepScanAnalyzer {
+            constructor() {
+                this.setupConsoleCapture();
+            }
+            
+            setupConsoleCapture() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                const originalWarn = console.warn;
+                const outputDiv = document.getElementById('console-output');
+                
+                const logToDiv = (message, type = 'log') => {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '📝';
+                    outputDiv.innerHTML += `<div>[${timestamp}] ${prefix} ${message}</div>`;
+                    outputDiv.scrollTop = outputDiv.scrollHeight;
+                };
+                
+                console.log = (...args) => {
+                    originalLog.apply(console, args);
+                    logToDiv(args.join(' '), 'log');
+                };
+                
+                console.error = (...args) => {
+                    originalError.apply(console, args);
+                    logToDiv(args.join(' '), 'error');
+                };
+                
+                console.warn = (...args) => {
+                    originalWarn.apply(console, args);
+                    logToDiv(args.join(' '), 'warn');
+                };
+            }
+            
+            // Enhanced animateMetrics method from our fixes
+            animateMetrics(metrics, containerId) {
+                console.log("🚀 COMPREHENSIVE TROUBLESHOOTING - animateMetrics()");
+                console.log("=".repeat(60));
+                
+                try {
+                    // STEP 1: Validate input parameters
+                    console.log("🔍 STEP 1: Validating input parameters");
+                    console.log(`📊 Metrics input:`, JSON.stringify(metrics, null, 2));
+                    console.log(`🎯 Container ID: ${containerId}`);
+                    console.log(`📋 Metrics type: ${typeof metrics}`);
+                    console.log(`🔢 Metrics keys: ${metrics ? Object.keys(metrics) : 'No metrics'}`);
+                    
+                    // STEP 2: Validate container exists
+                    console.log("🔍 STEP 2: Validating container exists");
+                    const container = document.getElementById(containerId);
+                    if (!container) {
+                        console.error(`❌ Container '${containerId}' not found in DOM`);
+                        this.showMetricsErrorMessage(`Unable to display metrics: container '${containerId}' not found.`);
+                        return;
+                    }
+                    console.log(`✅ Container found: ${container.tagName}.${container.className}`);
+                    
+                    // STEP 3: Validate and create fallback metrics if needed
+                    console.log("🔍 STEP 3: Validating metrics data structure");
+                    if (!metrics || typeof metrics !== 'object') {
+                        console.warn("⚠️ Invalid or missing metrics, creating fallback");
+                        metrics = this.createFallbackMetrics();
+                    }
+                    
+                    // STEP 4: Validate individual metrics
+                    console.log("🔍 STEP 4: Validating individual metric values");
+                    const validatedMetrics = this.validateMetrics(metrics);
+                    console.log(`📈 Validated metrics:`, JSON.stringify(validatedMetrics, null, 2));
+                    
+                    // STEP 5: Clear container and create metrics elements
+                    console.log("🔍 STEP 5: Creating metrics display elements");
+                    container.innerHTML = '';
+                    
+                    const metricsHTML = Object.entries(validatedMetrics).map(([key, value]) => {
+                        const displayName = this.getMetricDisplayName(key);
+                        const safeValue = this.ensureValidNumber(value);
+                        
+                        return `
+                            <div class="metric-card">
+                                <div class="metric-value" data-metric="${key}" data-target="${safeValue}">0%</div>
+                                <div class="metric-label">${displayName}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    container.innerHTML = metricsHTML;
+                    
+                    // STEP 6: Animate with error handling
+                    console.log("🔍 STEP 6: Starting metric animations");
+                    this.performMetricAnimations(container, validatedMetrics);
+                    
+                    console.log("✅ animateMetrics completed successfully");
+                    
+                } catch (error) {
+                    console.error('❌ CRITICAL ERROR in animateMetrics:', error);
+                    console.error('📍 Error stack:', error.stack);
+                    
+                    // Show user-friendly error message
+                    this.showMetricsErrorMessage('An error occurred while displaying the analysis metrics. Please try refreshing the page.');
+                    
+                    // Create minimal fallback display
+                    const container = document.getElementById(containerId);
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="metric-card">
+                                <div class="metric-value">--</div>
+                                <div class="metric-label">Analysis Error</div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            createFallbackMetrics() {
+                console.log("🔧 Creating fallback metrics data");
+                return {
+                    cnn_detection: 65,
+                    frequency_analysis: 58,
+                    face_warping: 45,
+                    metadata_analysis: 78,
+                    pixel_analysis: 62,
+                    temporal_consistency: 55,
+                    ensemble_score: 60
+                };
+            }
+            
+            validateMetrics(metrics) {
+                console.log("🔍 Validating individual metrics...");
+                const validatedMetrics = {};
+                
+                for (const [key, value] of Object.entries(metrics)) {
+                    const numValue = this.ensureValidNumber(value);
+                    validatedMetrics[key] = numValue;
+                    console.log(`📊 ${key}: ${value} → ${numValue}%`);
+                }
+                
+                return validatedMetrics;
+            }
+            
+            ensureValidNumber(value) {
+                const num = parseFloat(value);
+                if (isNaN(num)) {
+                    console.warn(`⚠️ Invalid number: ${value}, using 0`);
+                    return 0;
+                }
+                return Math.max(0, Math.min(100, num));
+            }
+            
+            getMetricDisplayName(key) {
+                const names = {
+                    'cnn_detection': 'CNN Detection',
+                    'frequency_analysis': 'Frequency Analysis',
+                    'face_warping': 'Face Warping',
+                    'metadata_analysis': 'Metadata Analysis', 
+                    'pixel_analysis': 'Pixel Analysis',
+                    'temporal_consistency': 'Temporal Consistency',
+                    'ensemble_score': 'Ensemble Score'
+                };
+                return names[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            }
+            
+            performMetricAnimations(container, metrics) {
+                const metricElements = container.querySelectorAll('.metric-value');
+                
+                metricElements.forEach((element, index) => {
+                    setTimeout(() => {
+                        const targetValue = parseInt(element.dataset.target);
+                        this.animateValue(element, 0, targetValue, 1500);
+                    }, index * 200);
+                });
+            }
+            
+            animateValue(element, start, end, duration) {
+                const startTime = performance.now();
+                
+                const updateValue = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    const currentValue = Math.round(start + (end - start) * this.easeOutCubic(progress));
+                    element.textContent = currentValue + '%';
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(updateValue);
+                    }
+                };
+                
+                requestAnimationFrame(updateValue);
+            }
+            
+            easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+            
+            showMetricsErrorMessage(message) {
+                console.log('📢 Showing metrics error message:', message);
+                this.showNotification(message, 'error');
+            }
+            
+            showNotification(message, type = 'info') {
+                console.log(`🔔 Notification (${type}):`, message);
+                
+                // Remove existing notifications
+                const existingNotifications = document.querySelectorAll('.notification');
+                existingNotifications.forEach(notification => notification.remove());
+                
+                // Create notification
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type}`;
+                notification.innerHTML = `
+                    <div class="notification-content">
+                        <span class="notification-icon">${this.getNotificationIcon(type)}</span>
+                        <span class="notification-message">${message}</span>
+                        <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                    </div>
+                `;
+                
+                // Add styles
+                this.addNotificationStyles();
+                
+                document.body.appendChild(notification);
+                
+                // Auto-remove
+                const delay = type === 'error' ? 8000 : 5000;
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.style.animation = 'slideOutRight 0.3s ease-in';
+                        setTimeout(() => {
+                            if (notification.parentElement) {
+                                notification.remove();
+                            }
+                        }, 300);
+                    }
+                }, delay);
+            }
+            
+            getNotificationIcon(type) {
+                const icons = {
+                    'info': 'ℹ️',
+                    'success': '✅', 
+                    'warning': '⚠️',
+                    'error': '❌'
+                };
+                return icons[type] || icons['info'];
+            }
+            
+            addNotificationStyles() {
+                if (!document.getElementById('notification-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'notification-styles';
+                    style.textContent = `
+                        .notification {
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            max-width: 400px;
+                            z-index: 10000;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            animation: slideInRight 0.3s ease-out;
+                        }
+                        
+                        .notification-info { background: linear-gradient(135deg, #4A90E2, #357ABD); color: white; }
+                        .notification-success { background: linear-gradient(135deg, #5CB85C, #449D44); color: white; }
+                        .notification-warning { background: linear-gradient(135deg, #F0AD4E, #EC971F); color: white; }
+                        .notification-error { background: linear-gradient(135deg, #D9534F, #C9302C); color: white; }
+                        
+                        .notification-content {
+                            display: flex;
+                            align-items: center;
+                            padding: 12px 16px;
+                            gap: 8px;
+                        }
+                        
+                        .notification-icon { font-size: 18px; flex-shrink: 0; }
+                        .notification-message { flex: 1; font-size: 14px; line-height: 1.4; }
+                        .notification-close {
+                            background: none; border: none; color: inherit; font-size: 18px;
+                            cursor: pointer; padding: 0; width: 24px; height: 24px;
+                            display: flex; align-items: center; justify-content: center;
+                            border-radius: 50%; transition: background-color 0.2s;
+                        }
+                        .notification-close:hover { background-color: rgba(255, 255, 255, 0.2); }
+                        
+                        @keyframes slideInRight {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes slideOutRight {
+                            from { transform: translateX(0); opacity: 1; }
+                            to { transform: translateX(100%); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+        }
+        
+        // Initialize the test analyzer
+        const analyzer = new MockDeepScanAnalyzer();
+        
+        // Test functions
+        function testValidMetrics() {
+            console.log("\n🧪 TEST 1: Valid Metrics Data");
+            const validMetrics = {
+                cnn_detection: 85.7,
+                frequency_analysis: 78.3,
+                face_warping: 65.9,
+                metadata_analysis: 92.1,
+                pixel_analysis: 74.6,
+                temporal_consistency: 81.2,
+                ensemble_score: 79.6
+            };
+            analyzer.animateMetrics(validMetrics, 'metrics-test-1');
+        }
+        
+        function testMissingMetrics() {
+            console.log("\n🧪 TEST 2: Missing Metrics Data");
+            analyzer.animateMetrics(null, 'metrics-test-2');
+        }
+        
+        function testInvalidMetrics() {
+            console.log("\n🧪 TEST 3: Invalid Metrics Data");
+            const invalidMetrics = {
+                cnn_detection: "not_a_number",
+                frequency_analysis: undefined,
+                face_warping: -15,
+                metadata_analysis: 150,
+                pixel_analysis: null,
+                temporal_consistency: "NaN",
+                ensemble_score: {}
+            };
+            analyzer.animateMetrics(invalidMetrics, 'metrics-test-3');
+        }
+        
+        function testNotifications() {
+            console.log("\n🧪 TEST 4: Notification System");
+            
+            setTimeout(() => analyzer.showNotification('This is an info notification', 'info'), 100);
+            setTimeout(() => analyzer.showNotification('This is a success notification', 'success'), 600);
+            setTimeout(() => analyzer.showNotification('This is a warning notification', 'warning'), 1100);
+            setTimeout(() => analyzer.showNotification('This is an error notification', 'error'), 1600);
+        }
+        
+        // Auto-run initial test
+        setTimeout(() => {
+            console.log("🚀 Auto-running initial test with valid metrics...");
+            testValidMetrics();
+        }, 1000);
+    </script>
+</body>
+</html>

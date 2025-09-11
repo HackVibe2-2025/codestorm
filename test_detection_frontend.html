@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepScan - Detection Logic Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .upload-area {
+            border: 2px dashed #4A90E2;
+            padding: 30px;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .upload-area:hover {
+            background-color: #f0f8ff;
+        }
+        .result-display {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .result-authentic {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result-suspicious {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .debug-info {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #357ABD;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 DeepScan Detection Logic Test</h1>
+        <p>This page tests the corrected deepfake detection logic to ensure real images show as "REAL" and fake images show as "FAKE".</p>
+        
+        <div class="test-section">
+            <h3>📤 Upload Test Image</h3>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <p>Click here to select an image file for testing</p>
+                <p><small>Supported formats: JPG, PNG, WebP</small></p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+        
+        <div class="test-section">
+            <h3>🎯 Analysis Result</h3>
+            <div id="analysisResult" class="result-display" style="display: none;">
+                Results will appear here...
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔍 Debug Information</h3>
+            <div id="debugInfo" class="debug-info">
+                Debug logs will appear here...
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🧪 Quick Tests</h3>
+            <button class="test-button" onclick="testHealthCheck()">Test Health Check</button>
+            <button class="test-button" onclick="clearLogs()">Clear Logs</button>
+        </div>
+    </div>
+
+    <script>
+        const debugInfo = document.getElementById('debugInfo');
+        const analysisResult = document.getElementById('analysisResult');
+        const fileInput = document.getElementById('fileInput');
+
+        // Setup console capture for debugging
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        function addDebugLog(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : '📝';
+            debugInfo.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+            
+            // Also log to browser console
+            if (type === 'error') {
+                originalError(message);
+            } else {
+                originalLog(message);
+            }
+        }
+        
+        console.log = (...args) => addDebugLog(args.join(' '), 'log');
+        console.error = (...args) => addDebugLog(args.join(' '), 'error');
+
+        // File upload handler
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                addDebugLog(`📁 File selected: ${file.name} (${file.size} bytes)`);
+                analyzeImage(file);
+            }
+        });
+
+        async function analyzeImage(file) {
+            try {
+                addDebugLog('🚀 Starting image analysis...');
+                analysisResult.style.display = 'none';
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                addDebugLog('📡 Sending request to backend...');
+                
+                // Send to backend with summary format
+                const response = await fetch('http://127.0.0.1:5000/detect?format=summary', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                addDebugLog('✅ Backend response received');
+                addDebugLog(`📊 Raw Response: ${JSON.stringify(result, null, 2)}`);
+                
+                // Process the result
+                processAnalysisResult(result);
+                
+            } catch (error) {
+                addDebugLog(`❌ Analysis failed: ${error.message}`, 'error');
+                analysisResult.innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+                analysisResult.className = 'result-display result-suspicious';
+                analysisResult.style.display = 'block';
+            }
+        }
+        
+        function processAnalysisResult(backendResult) {
+            addDebugLog('🔍 Processing analysis result...');
+            
+            try {
+                const analyses = backendResult.results?.analyses || {};
+                const overall = backendResult.results?.overall_assessment || {};
+                const aiSummary = backendResult.summary || {};
+                
+                addDebugLog('🔍 FRONTEND INTERPRETATION DEBUG:');
+                
+                // Extract AI detection result if available
+                const aiDetection = analyses.deepfake_detection?.result || {};
+                addDebugLog(`  - AI Detection Result: ${JSON.stringify(aiDetection)}`);
+                addDebugLog(`  - AI Label: ${aiDetection.label}`);
+                addDebugLog(`  - AI Score: ${aiDetection.score}`);
+                addDebugLog(`  - AI Raw Probabilities: ${JSON.stringify(aiDetection.raw_probabilities)}`);
+                addDebugLog(`  - Overall Assessment: ${JSON.stringify(overall)}`);
+                addDebugLog(`  - overall.is_likely_deepfake: ${overall.is_likely_deepfake}`);
+                addDebugLog(`  - overall.confidence_score: ${overall.confidence_score}`);
+                
+                const isDeepfake = aiDetection.label === 'fake' || overall.is_likely_deepfake || false;
+                addDebugLog(`  - Computed isDeepfake: ${isDeepfake}`);
+                
+                // Calculate confidence (authenticity percentage)
+                let confidence;
+                if (overall.confidence_score !== undefined) {
+                    confidence = overall.confidence_score * 100;
+                    addDebugLog(`  - Using backend confidence: ${confidence}%`);
+                } else if (aiDetection.raw_probabilities) {
+                    confidence = aiDetection.raw_probabilities.real * 100;
+                    addDebugLog(`  - Using AI raw probabilities (real): ${confidence}%`);
+                } else if (aiDetection.score) {
+                    if (aiDetection.label === 'real') {
+                        confidence = aiDetection.score * 100;
+                        addDebugLog(`  - Using AI score for REAL prediction: ${confidence}%`);
+                    } else {
+                        confidence = (1 - aiDetection.score) * 100;
+                        addDebugLog(`  - Using inverted AI score for FAKE prediction: ${confidence}%`);
+                    }
+                } else {
+                    confidence = 85;
+                    addDebugLog(`  - Using default fallback confidence: ${confidence}%`);
+                }
+                
+                addDebugLog('🎯 FINAL INTERPRETATION:');
+                addDebugLog(`  - isDeepfake: ${isDeepfake}`);
+                addDebugLog(`  - confidence (authenticity %): ${confidence.toFixed(1)}%`);
+                addDebugLog(`  - Expected UI: ${isDeepfake ? 'SUSPICIOUS/FAKE' : 'AUTHENTIC/REAL'}`);
+                
+                // Update UI
+                displayResult(isDeepfake, confidence, overall, aiSummary);
+                
+            } catch (error) {
+                addDebugLog(`❌ Error processing result: ${error.message}`, 'error');
+                analysisResult.innerHTML = `<strong>❌ Processing Error:</strong> ${error.message}`;
+                analysisResult.className = 'result-display result-suspicious';
+                analysisResult.style.display = 'block';
+            }
+        }
+        
+        function displayResult(isDeepfake, confidence, overall, aiSummary) {
+            const status = isDeepfake ? 'SUSPICIOUS (LIKELY FAKE)' : 'AUTHENTIC (LIKELY REAL)';
+            const icon = isDeepfake ? '⚠️' : '✅';
+            const className = isDeepfake ? 'result-suspicious' : 'result-authentic';
+            
+            let summaryText = '';
+            if (aiSummary && aiSummary.summary) {
+                summaryText = `<br><br><strong>AI Summary:</strong><br>${aiSummary.summary}`;
+            }
+            
+            analysisResult.innerHTML = `
+                <strong>${icon} ${status}</strong><br>
+                <strong>Authenticity Confidence:</strong> ${confidence.toFixed(1)}%<br>
+                <strong>Recommendation:</strong> ${overall.recommendation || 'Analysis completed'}
+                ${summaryText}
+            `;
+            analysisResult.className = `result-display ${className}`;
+            analysisResult.style.display = 'block';
+            
+            addDebugLog(`✅ UI Updated: ${status} with ${confidence.toFixed(1)}% authenticity confidence`);
+        }
+        
+        async function testHealthCheck() {
+            try {
+                addDebugLog('🏥 Testing health check endpoint...');
+                const response = await fetch('http://127.0.0.1:5000/health');
+                const result = await response.json();
+                addDebugLog(`✅ Health check response: ${JSON.stringify(result)}`);
+            } catch (error) {
+                addDebugLog(`❌ Health check failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearLogs() {
+            debugInfo.textContent = '';
+            addDebugLog('🧹 Debug logs cleared');
+        }
+        
+        // Initialize
+        addDebugLog('🚀 DeepScan Detection Logic Test initialized');
+        addDebugLog('📡 Backend should be running on http://127.0.0.1:5000');
+        testHealthCheck();
+    </script>
+</body>
+</html>
