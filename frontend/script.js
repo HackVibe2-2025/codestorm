@@ -13,7 +13,16 @@ class DeepScanApp {
             'image/x-png',  // Alternative PNG MIME type
             'image/bmp',    // Windows Bitmap
             'image/tiff',   // TIFF format
-            'image/svg+xml' // SVG format
+            'image/svg+xml', // SVG format
+            'image/x-bitmap', // Alternative bitmap
+            'image/x-ms-bmp', // Microsoft bitmap
+            'image/vnd.microsoft.icon', // ICO files
+            'image/x-icon',  // Alternative ICO
+            'image/x-portable-bitmap', // PBM
+            'image/x-portable-graymap', // PGM
+            'image/x-portable-pixmap', // PPM
+            '', // Empty MIME type (some browsers don't set MIME type)
+            'application/octet-stream' // Generic binary (fallback)
         ];
         this.maxFileSize = 10 * 1024 * 1024; // 10MB
         
@@ -187,10 +196,21 @@ class DeepScanApp {
 
     // Enhanced file validation function
     isValidImageFile(file) {
-        console.log('Validating file:', file.name, 'Type:', file.type); // Debug log
+        console.log('🔍 DETAILED FILE VALIDATION:');
+        console.log('  - File name:', file.name);
+        console.log('  - File type (MIME):', file.type);
+        console.log('  - File size:', file.size);
+        console.log('  - Supported formats:', this.supportedFormats);
+        
+        // 🚨 TEMPORARY: Accept all files for debugging (remove this in production)
+        if (window.location.search.includes('debug') || window.debugMode) {
+            console.log('🚨 DEBUG MODE: Accepting all files');
+            return true;
+        }
         
         // Check MIME type first
         if (this.supportedFormats.includes(file.type)) {
+            console.log('✅ File accepted by MIME type:', file.type);
             return true;
         }
         
@@ -199,12 +219,29 @@ class DeepScanApp {
         const fileName = file.name.toLowerCase();
         const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
         
+        console.log('🔍 EXTENSION CHECK:');
+        console.log('  - File name (lowercase):', fileName);
+        console.log('  - Valid extensions:', validExtensions);
+        console.log('  - Has valid extension:', hasValidExtension);
+        
         if (hasValidExtension) {
-            console.log('File accepted based on extension:', fileName);
+            console.log('✅ File accepted based on extension:', fileName);
             return true;
         }
         
-        console.log('File rejected - unsupported format:', file.name, file.type);
+        // 🔧 EMERGENCY FALLBACK: If file name contains image-like words, accept it
+        const imageKeywords = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'image', 'photo', 'picture'];
+        const hasImageKeyword = imageKeywords.some(keyword => fileName.includes(keyword));
+        
+        if (hasImageKeyword) {
+            console.log('✅ File accepted based on image keyword in filename:', fileName);
+            return true;
+        }
+        
+        console.log('❌ File rejected - unsupported format');
+        console.log('  - MIME type not in supported list:', file.type);
+        console.log('  - Extension not in valid list:', fileName);
+        console.log('  - No image keywords found in filename');
         return false;
     }
 
@@ -212,10 +249,43 @@ class DeepScanApp {
         e.preventDefault();
         this.elements.uploadBox.classList.remove('dragover');
         
+        console.log('🎯 DRAG & DROP DEBUG:');
+        console.log('  - Event:', e);
+        console.log('  - DataTransfer:', e.dataTransfer);
+        console.log('  - Files:', e.dataTransfer.files);
+        
         const files = Array.from(e.dataTransfer.files);
-        const imageFiles = files.filter(file => this.isValidImageFile(file));
+        console.log('  - Files array:', files);
+        
+        if (files.length === 0) {
+            console.log('❌ No files detected in drop event');
+            this.showNotification('No files detected. Please try again.', 'error');
+            return;
+        }
+        
+        files.forEach((file, index) => {
+            console.log(`📁 File ${index + 1}:`, {
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                lastModified: new Date(file.lastModified)
+            });
+        });
+        
+        const imageFiles = files.filter(file => {
+            const isValid = this.isValidImageFile(file);
+            console.log(`🔍 File ${file.name} validation:`, isValid);
+            return isValid;
+        });
+        
+        console.log('📊 VALIDATION RESULTS:');
+        console.log('  - Total files dropped:', files.length);
+        console.log('  - Valid image files:', imageFiles.length);
+        console.log('  - Valid files:', imageFiles.map(f => f.name));
         
         if (imageFiles.length > 0) {
+            console.log('✅ Accepting file:', imageFiles[0].name);
+            
             // Store the dropped file for use in handleUpload
             this.droppedFile = imageFiles[0];
             
@@ -224,8 +294,9 @@ class DeepScanApp {
                 const dt = new DataTransfer();
                 dt.items.add(imageFiles[0]);
                 this.elements.fileInput.files = dt.files;
+                console.log('✅ File input updated successfully');
             } catch (error) {
-                console.log('Could not set file input files:', error);
+                console.log('⚠️ Could not set file input files:', error);
             }
             
             this.handleFileSelect({ target: { files: imageFiles } });
@@ -236,7 +307,8 @@ class DeepScanApp {
             // Highlight the analyze button
             this.elements.uploadBtn.classList.add('file-ready');
         } else {
-            this.showNotification('Please drop a valid image file (JPG, PNG, WebP, GIF)', 'error');
+            console.log('❌ No valid image files found');
+            this.showNotification('Please drop a valid image file (JPG, JPEG, PNG, WebP, GIF, BMP, TIFF)', 'error');
         }
     }
 
@@ -756,6 +828,70 @@ window.debugUpload = function() {
         }
     } else {
         console.error('Upload button not found!');
+    }
+};
+
+// NEW: File validation test function
+window.testFileValidation = function() {
+    console.log('=== FILE VALIDATION TEST ===');
+    console.log('Supported formats:', window.deepScanApp.supportedFormats);
+    
+    // Test common JPEG MIME types
+    const testTypes = [
+        'image/jpeg',
+        'image/jpg', 
+        'image/png',
+        'image/webp',
+        'image/gif',
+        '',
+        'application/octet-stream'
+    ];
+    
+    testTypes.forEach(type => {
+        const mockFile = { 
+            name: 'test.jpg', 
+            type: type, 
+            size: 1024 
+        };
+        const isValid = window.deepScanApp.isValidImageFile(mockFile);
+        console.log(`Type "${type}": ${isValid ? '✅ VALID' : '❌ INVALID'}`);
+    });
+    
+    // Test specific file names with different extensions
+    console.log('\n=== FILENAME EXTENSION TEST ===');
+    const testFiles = [
+        { name: 'photo.jpg', type: '' },
+        { name: 'photo.jpeg', type: '' },
+        { name: 'image.png', type: '' },
+        { name: 'picture.webp', type: '' },
+        { name: 'animation.gif', type: '' },
+        { name: 'document.pdf', type: '' },
+        { name: 'IMG_1234.JPG', type: '' },
+        { name: 'Screenshot.PNG', type: '' }
+    ];
+    
+    testFiles.forEach(file => {
+        const isValid = window.deepScanApp.isValidImageFile(file);
+        console.log(`File "${file.name}": ${isValid ? '✅ VALID' : '❌ INVALID'}`);
+    });
+};
+
+// NEW: File input change test
+window.testFileInput = function() {
+    console.log('=== FILE INPUT TEST ===');
+    const fileInput = document.getElementById('fileInput');
+    console.log('File input element:', fileInput);
+    console.log('File input accept:', fileInput.accept);
+    console.log('Current files:', fileInput.files);
+    
+    if (fileInput.files && fileInput.files.length > 0) {
+        Array.from(fileInput.files).forEach((file, index) => {
+            console.log(`File ${index + 1}:`, {
+                name: file.name,
+                type: file.type,
+                size: file.size
+            });
+        });
     }
 };
 

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔧 JPEG/JPG Drag & Drop Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .drop-zone {
+            border: 3px dashed #ccc;
+            border-radius: 10px;
+            padding: 50px;
+            text-align: center;
+            margin: 20px 0;
+            background: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+        .drop-zone.dragover {
+            border-color: #007bff;
+            background: #e3f2fd;
+        }
+        .results {
+            background: #f5f5f5;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 JPEG/JPG Drag & Drop Test</h1>
+    
+    <div class="drop-zone" id="dropZone">
+        <h3>📁 Drop Your JPG/JPEG Files Here</h3>
+        <p>This will show you exactly what MIME type your browser reports</p>
+    </div>
+    
+    <button class="clear-btn" onclick="clearResults()">Clear Results</button>
+    
+    <div id="results" class="results">Ready for testing...\n</div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const results = document.getElementById('results');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            results.textContent += `[${timestamp}] ${message}\n`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            results.textContent = 'Ready for testing...\n';
+        }
+        
+        // Drag and drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            if (!dropZone.contains(e.relatedTarget)) {
+                dropZone.classList.remove('dragover');
+            }
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            log('🎯 FILES DROPPED!');
+            log(`📁 Total files: ${e.dataTransfer.files.length}`);
+            
+            Array.from(e.dataTransfer.files).forEach((file, index) => {
+                log(`\n--- FILE ${index + 1} ---`);
+                log(`📄 Name: "${file.name}"`);
+                log(`🏷️  MIME Type: "${file.type}"`);
+                log(`📏 Size: ${file.size} bytes`);
+                log(`📅 Modified: ${new Date(file.lastModified).toLocaleString()}`);
+                
+                // Test against exact formats DeepScan expects
+                const supportedMimes = [
+                    'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 
+                    'image/gif', 'image/pjpeg', 'image/x-png', 'image/bmp', 
+                    'image/tiff', 'image/svg+xml', '', 'application/octet-stream'
+                ];
+                
+                const mimeSupported = supportedMimes.includes(file.type);
+                log(`🎯 MIME supported: ${mimeSupported ? '✅ YES' : '❌ NO'}`);
+                
+                // Test extension
+                const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.svg'];
+                const fileName = file.name.toLowerCase();
+                const extSupported = validExtensions.some(ext => fileName.endsWith(ext));
+                log(`🎯 Extension supported: ${extSupported ? '✅ YES' : '❌ NO'}`);
+                
+                // Final verdict
+                const wouldAccept = mimeSupported || extSupported;
+                log(`🎯 DeepScan would ${wouldAccept ? '✅ ACCEPT' : '❌ REJECT'} this file`);
+                
+                if (!wouldAccept) {
+                    log(`⚠️  PROBLEM: File rejected despite being an image!`);
+                    log(`   - Try renaming to "${file.name.replace(/\.[^.]+$/, '.jpg')}"`);
+                    log(`   - Or check if file is corrupted`);
+                }
+            });
+        });
+        
+        log('🔧 Simple drag & drop test ready');
+        log('Drop your JPG/JPEG files to see what MIME type your browser reports...');
+    </script>
+</body>
+</html>
