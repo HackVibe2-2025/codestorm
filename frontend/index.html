@@ -70,17 +70,17 @@
                                 <path d="m9 15 3-3 3 3"/>
                             </svg>
                         </div>
-                        <h3 class="upload-title">Drop Image or URL</h3>
-                        <p class="upload-description">Drag & drop an image here or paste a URL below</p>
+                        <h3 class="upload-title">Drop WebP Image or URL</h3>
+                        <p class="upload-description">Drag & drop a WebP image here or paste a URL below</p>
                         
-                        <input type="file" id="fileInput" accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/bmp,image/tiff,.jpg,.jpeg,.png,.webp,.gif,.bmp,.tiff" aria-label="Select image file" />
+                        <input type="file" id="fileInput" accept="image/webp,.webp" aria-label="Select WebP image file" />
                         
                         <div class="input-group">
                             <input 
                                 type="url" 
                                 id="imageUrlInput" 
-                                placeholder="https://example.com/image.jpg" 
-                                aria-label="Image URL"
+                                placeholder="https://example.com/image.webp" 
+                                aria-label="WebP Image URL"
                                 autocomplete="url"
                             />
                             <div class="input-validation" id="urlValidation"></div>
@@ -92,7 +92,7 @@
                         </button>
                         
                         <div class="supported-formats">
-                            <small>Supported: JPG, JPEG, PNG, WebP, GIF, BMP, TIFF (Max: 10MB)</small>
+                            <small>Supported: WebP only (.webp) (Max: 10MB)</small>
                         </div>
                     </div>
                     

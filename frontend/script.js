@@ -194,58 +194,30 @@ class DeepScanApp {
         }
     }
 
-    // Enhanced file validation function
+    // WebP-only file validation function
     isValidImageFile(file) {
-        console.log('🔍 DETAILED FILE VALIDATION:');
+        console.log('🔍 WEBP-ONLY FILE VALIDATION:');
         console.log('  - File name:', file.name);
         console.log('  - File type (MIME):', file.type);
         console.log('  - File size:', file.size);
-        console.log('  - Supported formats:', this.supportedFormats);
         
-        // 🚨 TEMPORARY: Accept all files for debugging (remove this in production)
-        if (window.location.search.includes('debug') || window.debugMode) {
-            console.log('🚨 DEBUG MODE: Accepting all files');
-            return true;
-        }
-        
-        // Check MIME type first
-        if (this.supportedFormats.includes(file.type)) {
-            console.log('✅ File accepted by MIME type:', file.type);
-            return true;
-        }
-        
-        // Fallback: Check file extension if MIME type is not recognized
-        const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.svg'];
+        // 🎯 WEBP ONLY STRATEGY: Accept only WebP files
         const fileName = file.name.toLowerCase();
-        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+        const isWebPMimeType = file.type === 'image/webp';
+        const isWebPExtension = fileName.endsWith('.webp');
         
-        console.log('🔍 EXTENSION CHECK:');
-        console.log('  - File name (lowercase):', fileName);
-        console.log('  - Valid extensions:', validExtensions);
-        console.log('  - Has valid extension:', hasValidExtension);
+        const isValidWebP = isWebPMimeType || isWebPExtension;
         
-        if (hasValidExtension) {
-            console.log('✅ File accepted based on extension:', fileName);
-            return true;
-        }
+        console.log('🔍 WEBP VALIDATION:');
+        console.log('  - WebP MIME type:', isWebPMimeType);
+        console.log('  - WebP extension:', isWebPExtension);
+        console.log('  - FINAL RESULT:', isValidWebP ? '✅ WEBP ACCEPTED' : '❌ NOT WEBP - REJECTED');
         
-        // 🔧 EMERGENCY FALLBACK: If file name contains image-like words, accept it
-        const imageKeywords = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tiff', 'image', 'photo', 'picture'];
-        const hasImageKeyword = imageKeywords.some(keyword => fileName.includes(keyword));
-        
-        if (hasImageKeyword) {
-            console.log('✅ File accepted based on image keyword in filename:', fileName);
-            return true;
-        }
-        
-        console.log('❌ File rejected - unsupported format');
-        console.log('  - MIME type not in supported list:', file.type);
-        console.log('  - Extension not in valid list:', fileName);
-        console.log('  - No image keywords found in filename');
-        return false;
+        return isValidWebP;
     }
 
-    handleDrop(e) {
+    // 🆕 NEW: Convert any image to WebP format
+    async handleDrop(e) {
         e.preventDefault();
         this.elements.uploadBox.classList.remove('dragover');
         
@@ -272,6 +244,7 @@ class DeepScanApp {
             });
         });
         
+        // Filter for valid image files
         const imageFiles = files.filter(file => {
             const isValid = this.isValidImageFile(file);
             console.log(`🔍 File ${file.name} validation:`, isValid);
@@ -284,31 +257,34 @@ class DeepScanApp {
         console.log('  - Valid files:', imageFiles.map(f => f.name));
         
         if (imageFiles.length > 0) {
-            console.log('✅ Accepting file:', imageFiles[0].name);
+            const webpFile = imageFiles[0];
+            console.log('✅ WebP file accepted:', webpFile.name);
             
-            // Store the dropped file for use in handleUpload
-            this.droppedFile = imageFiles[0];
+            // Store the WebP file
+            this.droppedFile = webpFile;
+            this.selectedFile = webpFile;
             
-            // Try to set the file input (may not work in all browsers)
+            // Try to set the file input with WebP file
             try {
                 const dt = new DataTransfer();
-                dt.items.add(imageFiles[0]);
+                dt.items.add(webpFile);
                 this.elements.fileInput.files = dt.files;
-                console.log('✅ File input updated successfully');
+                console.log('✅ File input updated with WebP file');
             } catch (error) {
                 console.log('⚠️ Could not set file input files:', error);
             }
             
-            this.handleFileSelect({ target: { files: imageFiles } });
-            
-            // Show that file is ready for analysis with enhanced message
-            this.showNotification(`✅ ${imageFiles[0].name} ready! Click "Analyze Image" to start detection.`, 'success');
-            
-            // Highlight the analyze button
+            // Update UI
+            this.elements.uploadBtn.disabled = false;
             this.elements.uploadBtn.classList.add('file-ready');
+            this.elements.uploadBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Image';
+            
+            // Show success message
+            this.showNotification(`✅ ${webpFile.name} ready for analysis!`, 'success');
+            
         } else {
-            console.log('❌ No valid image files found');
-            this.showNotification('Please drop a valid image file (JPG, JPEG, PNG, WebP, GIF, BMP, TIFF)', 'error');
+            console.log('❌ No valid WebP files found');
+            this.showNotification('Please drop a WebP image file only (.webp)', 'error');
         }
     }
 
@@ -318,7 +294,7 @@ class DeepScanApp {
         if (!file) return;
 
         if (!this.isValidImageFile(file)) {
-            this.showNotification('Unsupported file format. Please use JPG, PNG, WebP, or GIF images.', 'error');
+            this.showNotification('Please select a WebP image file only (.webp)', 'error');
             return;
         }
 
@@ -331,8 +307,16 @@ class DeepScanApp {
         this.elements.imageUrlInput.value = '';
         this.hideValidation();
 
-        this.showNotification(`File selected: ${file.name}`, 'success');
-        console.log('File successfully selected:', file.name); // Debug log
+        // Store the WebP file directly
+        this.selectedFile = file;
+        
+        // Update UI
+        this.elements.uploadBtn.disabled = false;
+        this.elements.uploadBtn.classList.add('file-ready');
+        this.elements.uploadBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Image';
+        
+        this.showNotification(`✅ ${file.name} ready for analysis!`, 'success');
+        console.log('WebP file successfully selected:', file.name); // Debug log
     }
 
     validateUrl(url) {
@@ -344,19 +328,19 @@ class DeepScanApp {
         try {
             const urlObj = new URL(url);
             const isHttps = urlObj.protocol === 'https:';
-            const hasImageExtension = /\.(jpeg|jpg|png|gif|bmp|webp)(\?.*)?$/i.test(urlObj.pathname);
+            const hasWebPExtension = /\.webp(\?.*)?$/i.test(urlObj.pathname);
             
             if (!isHttps) {
                 this.showValidation('URL must use HTTPS for security', 'error');
                 return false;
             }
             
-            if (!hasImageExtension) {
-                this.showValidation('URL must point to an image file', 'error');
+            if (!hasWebPExtension) {
+                this.showValidation('URL must point to a WebP image file (.webp)', 'error');
                 return false;
             }
 
-            this.showValidation('Valid image URL', 'success');
+            this.showValidation('Valid WebP URL', 'success');
             return true;
         } catch {
             this.showValidation('Invalid URL format', 'error');
@@ -381,11 +365,23 @@ class DeepScanApp {
             return;
         }
 
-        const file = this.elements.fileInput.files[0] || this.droppedFile;
+        const file = this.selectedFile || this.droppedFile || this.elements.fileInput.files[0];
         const url = this.elements.imageUrlInput.value.trim();
 
         console.log('File:', file, 'URL:', url); // Debug log
-        console.log('Dropped file:', this.droppedFile); // Debug log
+        console.log('Selected file (converted):', this.selectedFile); // Debug log
+        console.log('Dropped file (converted):', this.droppedFile); // Debug log
+        
+        // 🎯 ENHANCED DEBUG: Show file details
+        if (file) {
+            console.log('📁 FILE DETAILS:');
+            console.log('  - Name:', file.name);
+            console.log('  - Type:', file.type);
+            console.log('  - Size:', (file.size / 1024 / 1024).toFixed(2) + ' MB');
+            console.log('  - Last Modified:', new Date(file.lastModified));
+            console.log('  - Is WebP?', file.type === 'image/webp');
+            console.log('  - Is Converted?', file.name.includes('converted'));
+        }
 
         if (!file && !url) {
             console.log('No file or URL provided');
