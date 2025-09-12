@@ -194,7 +194,7 @@ class DeepfakeAnalyzer:
             }
     
     def _calculate_overall_score(self, analyses):
-        """Calculate overall confidence and assessment"""
+        """Calculate overall confidence and assessment with false positive reduction"""
         suspicious_count = 0
         total_analyses = 0
         confidence_scores = []
@@ -213,16 +213,20 @@ class DeepfakeAnalyzer:
                 elif "suspicious_score" in result:
                     confidence_scores.append(1.0 - result["suspicious_score"])
         
-        # Calculate overall confidence
+        # Calculate base confidence from traditional analyses
         if total_analyses > 0:
             suspicion_ratio = suspicious_count / total_analyses
             base_confidence = 1.0 - suspicion_ratio
         else:
             base_confidence = 0.5
         
-        # Adjust based on AI model confidence if available
+        # Get AI analysis results
         ai_result = analyses.get("deepfake_detection", {}).get("result", {})
         ai_flag = analyses.get("deepfake_detection", {}).get("flag", "Skipped")
+        
+        # 🔧 ENHANCED FALSE POSITIVE REDUCTION
+        # Check if this might be a non-photographic image (drawing, artwork, etc.)
+        is_likely_synthetic_art = self._detect_synthetic_artwork(analyses)
         
         if ai_flag in ["Suspicious", "Passed"] and ai_result.get("raw_probabilities"):
             # Use raw probabilities for more accurate confidence calculation
@@ -230,20 +234,54 @@ class DeepfakeAnalyzer:
             real_prob = raw_probs.get("real", 0.5)
             fake_prob = raw_probs.get("fake", 0.5)
             
-            # Authenticity confidence is the probability that image is real
-            ai_authenticity_confidence = real_prob
+            # 🎯 ANTI-FALSE-POSITIVE LOGIC
+            if is_likely_synthetic_art:
+                print("🎨 Detected synthetic artwork - applying false positive reduction")
+                # For synthetic art, be much more conservative with AI predictions
+                if ai_flag == "Suspicious" and fake_prob < 0.85:  # Only flag if AI is very confident
+                    print(f"   📝 AI confidence {fake_prob:.3f} too low for artwork - treating as authentic")
+                    real_prob = max(real_prob, 0.7)  # Boost authenticity for artwork
+                elif ai_flag == "Passed":
+                    real_prob = max(real_prob, 0.8)  # Strongly favor authentic for artwork
             
-            # Weight the AI model heavily since it's trained specifically for this task
-            base_confidence = (base_confidence * 0.3) + (ai_authenticity_confidence * 0.7)
+            # Weight AI model based on confidence and image type
+            if is_likely_synthetic_art:
+                # Reduce AI weight for synthetic artwork
+                ai_weight = 0.4  # Reduced from 0.7
+                traditional_weight = 0.6
+            else:
+                # Normal weighting for photographic images
+                ai_weight = 0.7
+                traditional_weight = 0.3
+            
+            # Calculate weighted confidence
+            ai_authenticity_confidence = real_prob
+            base_confidence = (base_confidence * traditional_weight) + (ai_authenticity_confidence * ai_weight)
+            
         elif ai_flag == "Suspicious" and ai_result.get("label") == "fake":
-            # Fallback: If AI says "fake" with high confidence, lower our authenticity confidence
+            # Fallback handling for non-raw probability results
             fake_confidence = ai_result.get("score", 0.5)
-            authentic_confidence = 1.0 - fake_confidence
-            base_confidence = min(base_confidence, authentic_confidence)
+            
+            if is_likely_synthetic_art and fake_confidence < 0.85:
+                print(f"🎨 Artwork with low AI confidence ({fake_confidence:.3f}) - treating as authentic")
+                base_confidence = max(base_confidence, 0.7)
+            else:
+                authentic_confidence = 1.0 - fake_confidence
+                base_confidence = min(base_confidence, authentic_confidence)
+                
         elif ai_flag == "Passed" and ai_result.get("label") == "real":
-            # Fallback: If AI says "real" with high confidence, increase our authenticity confidence
+            # Boost confidence for AI-verified real images
             real_confidence = ai_result.get("score", 0.5)
+            if is_likely_synthetic_art:
+                real_confidence = max(real_confidence, 0.8)  # Extra boost for artwork
             base_confidence = max(base_confidence, real_confidence)
+        
+        # 🛡️ FINAL ANTI-FALSE-POSITIVE SAFEGUARDS
+        # If only AI flagged as suspicious and it's likely artwork, be lenient
+        if (suspicious_count == 1 and ai_flag == "Suspicious" and 
+            is_likely_synthetic_art and base_confidence > 0.4):
+            print("🛡️ Final safeguard: Only AI suspicious on artwork - boosting confidence")
+            base_confidence = max(base_confidence, 0.6)
         
         is_likely_deepfake = base_confidence < 0.5
         
@@ -254,6 +292,7 @@ class DeepfakeAnalyzer:
         print(f"  - Base confidence (before AI): {1.0 - (suspicious_count / total_analyses) if total_analyses > 0 else 0.5}")
         print(f"  - AI result: {ai_result}")
         print(f"  - AI flag: {ai_flag}")
+        print(f"  - Is likely synthetic art: {is_likely_synthetic_art}")
         print(f"  - Final base_confidence: {base_confidence}")
         print(f"  - is_likely_deepfake: {is_likely_deepfake}")
         print(f"  - Authenticity confidence: {base_confidence * 100:.1f}%")
@@ -275,8 +314,46 @@ class DeepfakeAnalyzer:
             "is_likely_deepfake": is_likely_deepfake,
             "suspicious_analyses": suspicious_count,
             "total_analyses": total_analyses,
-            "recommendation": recommendation
+            "recommendation": recommendation,
+            "is_synthetic_artwork": is_likely_synthetic_art
         }
+    
+    def _detect_synthetic_artwork(self, analyses):
+        """Detect if image is likely synthetic artwork/drawing rather than photography"""
+        indicators = 0
+        
+        # Check texture analysis - artwork often has more uniform textures
+        texture_result = analyses.get("texture_analysis", {}).get("result", {})
+        if texture_result.get("texture_features", {}).get("uniformity", 0) > 0.7:
+            indicators += 1
+        
+        # Check color analysis - digital art often has different color distributions
+        color_result = analyses.get("color_analysis", {}).get("result", {})
+        if color_result and isinstance(color_result, dict):
+            # Simple heuristic: digital art often has very even color distributions
+            color_variance = color_result.get("color_variance", 0.5)
+            if color_variance < 0.3:  # Very low variance suggests artificial colors
+                indicators += 1
+        
+        # Check EXIF data - digital artwork often lacks camera metadata
+        exif_result = analyses.get("exif_analysis", {}).get("result", {})
+        has_camera_info = bool(exif_result.get("camera_info"))
+        if not has_camera_info:
+            indicators += 1
+        
+        # Check blur analysis - drawings often have consistent sharpness
+        blur_result = analyses.get("blur_analysis", {}).get("result", {})
+        sharpness_consistency = blur_result.get("sharpness_consistency", 0)
+        if sharpness_consistency > 0.9:  # Very consistent sharpness
+            indicators += 1
+        
+        # Consider it synthetic artwork if multiple indicators present
+        is_artwork = indicators >= 2
+        
+        if is_artwork:
+            print(f"🎨 Synthetic artwork detected - indicators: {indicators}/4")
+        
+        return is_artwork
 
 def run_all_ops(pil_image: Image.Image):
     """

@@ -20,12 +20,19 @@ class TextureAnalyzer:
             texture_features = TextureAnalyzer._extract_texture_features(gray, skin_mask)
             consistency_score = TextureAnalyzer._calculate_texture_consistency(gray, skin_mask)
             
-            # Calculate suspicious score
+            # Calculate suspicious score with more conservative thresholds
             suspicious_score = 0.0
-            if consistency_score < 0.7:
-                suspicious_score += 0.5
-            if texture_features.get('uniformity', 0) > 0.8:  # Too uniform
-                suspicious_score += 0.3
+            
+            # 🔧 ANTI-FALSE-POSITIVE: More conservative texture analysis
+            if consistency_score < 0.5:  # Lowered from 0.7 - only flag very inconsistent textures
+                suspicious_score += 0.4  # Reduced impact
+            if texture_features.get('uniformity', 0) > 0.85:  # Only flag extremely uniform textures
+                suspicious_score += 0.2  # Reduced impact
+            
+            # Additional check: if skin regions are very small, reduce suspicion
+            skin_pixel_count = np.sum(skin_mask > 0)
+            if skin_pixel_count < 500:  # Very small skin regions
+                suspicious_score *= 0.5  # Reduce suspicion for non-face images
             
             return {
                 "skin_regions_detected": np.sum(skin_mask > 0) > 100,

@@ -27,17 +27,23 @@ class BlurAnalyzer:
                 region_var = cv2.Laplacian(region, cv2.CV_64F).var()
                 regional_sharpness.append(region_var)
             
-            # Calculate sharpness consistency
+            # Calculate sharpness consistency with anti-false-positive measures
             sharpness_std = np.std(regional_sharpness)
             avg_sharpness = np.mean(regional_sharpness)
             consistency_score = 1.0 - min(sharpness_std / (avg_sharpness + 1e-6), 1.0)
+            
+            # 🔧 ANTI-FALSE-POSITIVE: More conservative suspicious scoring
+            # Only flag if consistency is very poor AND overall sharpness is reasonable
+            suspicious_score = 0.0
+            if consistency_score < 0.5 and avg_sharpness > 50:  # More conservative threshold
+                suspicious_score = (1.0 - consistency_score) * 0.7  # Reduced impact
             
             return {
                 "overall_sharpness": round(laplacian_var, 2),
                 "is_blurry": laplacian_var < 100.0,
                 "regional_sharpness": [round(x, 2) for x in regional_sharpness],
                 "sharpness_consistency": round(consistency_score, 3),
-                "suspicious_score": 1.0 - consistency_score if consistency_score < 0.7 else 0.0
+                "suspicious_score": round(suspicious_score, 3)
             }
         
         except Exception as e:

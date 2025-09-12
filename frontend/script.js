@@ -3,7 +3,18 @@ class DeepScanApp {
     constructor() {
         this.elements = {};
         this.isAnalyzing = false;
-        this.supportedFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        this.supportedFormats = [
+            'image/jpeg', 
+            'image/jpg', 
+            'image/png', 
+            'image/webp', 
+            'image/gif',
+            'image/pjpeg',  // Progressive JPEG
+            'image/x-png',  // Alternative PNG MIME type
+            'image/bmp',    // Windows Bitmap
+            'image/tiff',   // TIFF format
+            'image/svg+xml' // SVG format
+        ];
         this.maxFileSize = 10 * 1024 * 1024; // 10MB
         
         this.init();
@@ -174,12 +185,35 @@ class DeepScanApp {
         }
     }
 
+    // Enhanced file validation function
+    isValidImageFile(file) {
+        console.log('Validating file:', file.name, 'Type:', file.type); // Debug log
+        
+        // Check MIME type first
+        if (this.supportedFormats.includes(file.type)) {
+            return true;
+        }
+        
+        // Fallback: Check file extension if MIME type is not recognized
+        const validExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff', '.svg'];
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+        
+        if (hasValidExtension) {
+            console.log('File accepted based on extension:', fileName);
+            return true;
+        }
+        
+        console.log('File rejected - unsupported format:', file.name, file.type);
+        return false;
+    }
+
     handleDrop(e) {
         e.preventDefault();
         this.elements.uploadBox.classList.remove('dragover');
         
         const files = Array.from(e.dataTransfer.files);
-        const imageFiles = files.filter(file => this.supportedFormats.includes(file.type));
+        const imageFiles = files.filter(file => this.isValidImageFile(file));
         
         if (imageFiles.length > 0) {
             // Store the dropped file for use in handleUpload
@@ -202,7 +236,7 @@ class DeepScanApp {
             // Highlight the analyze button
             this.elements.uploadBtn.classList.add('file-ready');
         } else {
-            this.showNotification('Please drop a valid image file', 'error');
+            this.showNotification('Please drop a valid image file (JPG, PNG, WebP, GIF)', 'error');
         }
     }
 
@@ -211,8 +245,8 @@ class DeepScanApp {
         console.log('handleFileSelect called with file:', file); // Debug log
         if (!file) return;
 
-        if (!this.supportedFormats.includes(file.type)) {
-            this.showNotification('Unsupported file format', 'error');
+        if (!this.isValidImageFile(file)) {
+            this.showNotification('Unsupported file format. Please use JPG, PNG, WebP, or GIF images.', 'error');
             return;
         }
 
